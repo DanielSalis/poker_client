@@ -23,10 +23,9 @@ export default function Home() {
       <Dialog open>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogTitle>Welcome to lia poker</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
+              Dialog - to create game
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
