@@ -2,6 +2,7 @@ import background from "./background.png";
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -20,7 +21,7 @@ export default function Home() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <Dialog open>
+      <Dialog open={true}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Welcome to lia poker</DialogTitle>
