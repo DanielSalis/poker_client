@@ -2,7 +2,7 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import background from "./background.png";
 import { funAnimalName } from 'fun-animal-names'
-
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   Dialog,
@@ -33,9 +33,9 @@ export default function Home() {
       }}
     >
       <Dialog open={true}>
-        <DialogContent className="w-[360px] min-h-[600px] flex flex-col justify-start">
+        <DialogContent className="w-[360px] min-h-[640px] flex flex-col justify-start">
           <DialogHeader>
-            <DialogTitle>Welcome to lia poker</DialogTitle>
+            <DialogTitle>Welcome to li<em>a</em>poker</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="create">
             <TabsList>
@@ -73,7 +73,33 @@ export default function Home() {
                 </CardFooter>
               </Card>
             </TabsContent>
-            <TabsContent value="join">join here</TabsContent>
+            <TabsContent value="join">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Join in an existent room</CardTitle>
+                  <CardDescription>
+                    Grab a friend's room ID and join!
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="roomId">Room ID</Label>
+                    <Input id="roomId" placeholder={"e.g: "+ uuidv4()}/>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="username">Username</Label>
+                    <Input id="username" defaultValue={roomNameHint} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="balance">Balance</Label>
+                    <Input type="number" step="1" min="0" max="3000" id="balance" defaultValue="1000" />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button>Create</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
           </Tabs>
         </DialogContent>
       </Dialog>
