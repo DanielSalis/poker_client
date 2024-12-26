@@ -18,36 +18,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { usePokerApi } from "@/hooks/usePokerApi";
+import DialogLayout from "@/components/dialog/dialog-layout";
+import CreateRoomForm from "@/components/form/create-room-form";
+import JoinRoomForm from "@/components/form/join-room-form";
 
 const formSchema = z.object({
   roomName: z.string().min(1, "Room name is required"),
-  maxPlayers: z.number().min(1).max(8, "Max players must be between 1 and 8"),
+  maxPlayers: z.string().min(1).max(8, "Max players must be between 1 and 8"),
   username: z.string().min(1, "Username is required"),
   balance: z.number().min(0).max(3000, "Balance must be between 0 and 3000"),
-  roomId: z.string().min(1, "Room name is required")
 });
 
 const joinFormSchema = z.object({
   username: z.string().min(1, "Username is required"),
   balance: z.number().min(0).max(3000, "Balance must be between 0 and 3000"),
-  roomId: z.string().min(1, "Room name is required")
+  roomId: z.string().min(1, "Room name is required"),
 });
-
 
 type FormValues = z.infer<typeof formSchema>;
 type JoinFormValues = z.infer<typeof joinFormSchema>;
@@ -59,27 +48,12 @@ export default function Home() {
     max_players: number;
     current_players: [];
   }>();
-  const createPlayerApi = usePokerApi<{ id: string,  username: string, chips: string}>();
+  const createPlayerApi = usePokerApi<{
+    id: string;
+    username: string;
+    chips: string;
+  }>();
   const joinApi = usePokerApi<{ message: string }>();
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      roomName: "",
-      maxPlayers: 1,
-      username: "",
-      balance: 1000,
-    },
-  });
-
-  const formJoin = useForm<JoinFormValues>({
-    resolver: zodResolver(joinFormSchema),
-    defaultValues: {
-      roomId: "",
-      username: "",
-      balance: 1000,
-    },
-  });
 
   const handleCreateRoomAndPlayer = (data: FormValues) => {
     createRoomApi.fetchApi("games", {
@@ -108,17 +82,17 @@ export default function Home() {
       },
     });
 
-    const playerId = createPlayerApi.data?.id
+    const playerId = createPlayerApi.data?.id;
 
     if (playerId) {
       joinApi.fetchApi(`games/${data.roomId}/join`, {
         method: "POST",
         body: {
-          player_id: playerId
-        }
-      })
+          player_id: playerId,
+        },
+      });
     }
-  }
+  };
 
   return (
     <div
@@ -130,173 +104,39 @@ export default function Home() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <Dialog open={true}>
-        <DialogContent className="w-[360px] min-h-[640px] flex flex-col justify-start">
-          <DialogDescription></DialogDescription>
-          <DialogHeader>
-            <DialogTitle>
-              Welcome to li<em>a</em>poker
-            </DialogTitle>
-          </DialogHeader>
-          <Tabs defaultValue="create">
-            <TabsList>
-              <TabsTrigger value="create">Create</TabsTrigger>
-              <TabsTrigger value="join">Join</TabsTrigger>
-            </TabsList>
-            <TabsContent value="create">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create a room</CardTitle>
-                  <CardDescription>
-                    You will be redirected to a new room, and a shareable ID
-                    will be generated.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit(handleCreateRoomAndPlayer)}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        name="roomName"
-                        control={form.control}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Room Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder={`e.g: ${funAnimalName(
-                                  uuidv4.toString()
-                                )}`}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        name="maxPlayers"
-                        control={form.control}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Max Players</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        name="username"
-                        control={form.control}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g: player123" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        name="balance"
-                        control={form.control}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Balance</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit">Create</Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="join">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Join an existing room</CardTitle>
-                  <CardDescription>
-                    Grab a friend's room ID and join!
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Form {...formJoin}>
-                    <form
-                      onSubmit={formJoin.handleSubmit(handleJoin)}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        name="roomId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Room ID</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder={"e.g: " + uuidv4()}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder={"e.g: John doe"}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        name="balance"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Balance</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                max="3000"
-                                step="1"
-                                placeholder="e.g: 1000"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button type="submit" className="w-full">
-                        Join Room
-                      </Button>
-                      {createPlayerApi.data?.id}
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      <DialogLayout>
+        <Tabs defaultValue="create">
+          <TabsList>
+            <TabsTrigger value="create">Create</TabsTrigger>
+            <TabsTrigger value="join">Join</TabsTrigger>
+          </TabsList>
+          <TabsContent value="create">
+            <Card>
+              <CardHeader>
+                <CardTitle>Create a room</CardTitle>
+                <CardDescription>
+                  You will be redirected to a new room, and a shareable ID will
+                  be generated.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CreateRoomForm onSubmit={handleCreateRoomAndPlayer}/>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="join">
+            <Card>
+              <CardHeader>
+                <CardTitle>Join an existing room</CardTitle>
+                <CardDescription>
+                  Grab a friend's room ID and join!
+                </CardDescription>
+              </CardHeader>
+              <JoinRoomForm onSubmit={handleJoin}/>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </DialogLayout>
     </div>
   );
 }
