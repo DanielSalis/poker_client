@@ -24,6 +24,8 @@ import { usePokerApi } from "@/hooks/usePokerApi";
 import DialogLayout from "@/components/dialog/dialog-layout";
 import CreateRoomForm from "@/components/form/create-room-form";
 import JoinRoomForm from "@/components/form/join-room-form";
+import { useRouter } from 'next/navigation'
+import Link from "next/link";
 
 const formSchema = z.object({
   roomName: z.string().min(1, "Room name is required"),
@@ -42,6 +44,8 @@ type FormValues = z.infer<typeof formSchema>;
 type JoinFormValues = z.infer<typeof joinFormSchema>;
 
 export default function Home() {
+  const router = useRouter();
+
   const createRoomApi = usePokerApi<{
     id: number;
     name: string;
@@ -55,8 +59,8 @@ export default function Home() {
   }>();
   const joinApi = usePokerApi<{ message: string }>();
 
-  const handleCreateRoomAndPlayer = (data: FormValues) => {
-    createRoomApi.fetchApi("games", {
+  const handleCreateRoomAndPlayer = async (data: FormValues) => {
+    await createRoomApi.fetchApi("games", {
       method: "POST",
       body: {
         name: data.roomName,
@@ -64,13 +68,17 @@ export default function Home() {
       },
     });
 
-    createPlayerApi.fetchApi("players", {
+    await createPlayerApi.fetchApi("players", {
       method: "POST",
       body: {
         username: data.username,
         balance: data.balance,
       },
     });
+
+    if(createRoomApi.data?.id){
+      router.push(`room/${createRoomApi.data?.id}`)
+    }
   };
 
   const handleJoin = async (data: JoinFormValues) => {
@@ -91,6 +99,10 @@ export default function Home() {
           player_id: playerId,
         },
       });
+    }
+
+    if(createRoomApi.data?.id){
+      router.push(`room/${createRoomApi.data?.id}`)
     }
   };
 
@@ -120,7 +132,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CreateRoomForm onSubmit={handleCreateRoomAndPlayer}/>
+                <CreateRoomForm onSubmit={handleCreateRoomAndPlayer} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -132,7 +144,12 @@ export default function Home() {
                   Grab a friend's room ID and join!
                 </CardDescription>
               </CardHeader>
-              <JoinRoomForm onSubmit={handleJoin}/>
+              <CardContent>
+                <JoinRoomForm onSubmit={handleJoin} />
+                <div className="w-[100%] flex justify-center items-center mt-4">
+                  <Link href="/room/all" className=" underline text-sky-600">check the ongoing games!</Link>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
