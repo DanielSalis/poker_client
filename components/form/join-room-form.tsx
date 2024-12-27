@@ -6,19 +6,18 @@ import { RoomForm } from "@/components/form/room-form";
 
 const joinRoomSchema = z.object({
   username: z.string().min(1, "Username is required"),
-  balance: z.number().min(0).max(3000, "Balance must be between 0 and 3000"),
-  roomId: z.string().min(1, "Room name is required"),
+  balance: z.string().min(1, "Balance must be between 0 and 3000"),
+  roomId: z.string().min(1, "Room id is required"),
 });
 
 
-const JoinRoomForm = ({ onSubmit }: any) => {
+const JoinRoomForm = ({ onSubmit, roomId }: any) => {
   const form = useForm({
     resolver: zodResolver(joinRoomSchema),
     defaultValues: {
-      roomName: "",
-      maxPlayers: 1,
+      roomId: roomId ? roomId : "",
       username: "",
-      balance: 1000,
+      balance: "1000",
     },
   });
 
