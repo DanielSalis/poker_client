@@ -6,9 +6,9 @@ import { RoomForm } from "@/components/form/room-form";
 
 const createRoomSchema = z.object({
   roomName: z.string().min(1, "Room name is required"),
-  maxPlayers: z.number().min(1).max(8, "Max players must be between 1 and 8"),
+  maxPlayers: z.string().min(1, "Max players must be between 1 and 8"),
   username: z.string().min(1, "Username is required"),
-  balance: z.number().min(0).max(3000, "Balance must be between 0 and 3000"),
+  balance: z.string().min(1, "Balance must be between 0 and 3000"),
 });
 
 
@@ -17,9 +17,9 @@ const CreateRoomForm = ({ onSubmit }: any) => {
     resolver: zodResolver(createRoomSchema),
     defaultValues: {
       roomName: "",
-      maxPlayers: 1,
+      maxPlayers: "",
       username: "",
-      balance: 1000,
+      balance: "",
     },
   });
 
