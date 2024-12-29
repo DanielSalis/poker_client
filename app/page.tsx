@@ -60,7 +60,7 @@ export default function Home() {
   const joinApi = usePokerApi<{ message: string }>();
 
   const handleCreateRoomAndPlayer = async (data: FormValues) => {
-    await createRoomApi.fetchApi("games", {
+    await createRoomApi.fetchApi("rooms", {
       method: "POST",
       body: {
         name: data.roomName,

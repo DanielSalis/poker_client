@@ -110,7 +110,7 @@ const Rooms = () => {
   ];
 
   const fetchGames = async () => {
-    await getAllGamesApi.fetchApi("games", {
+    await getAllGamesApi.fetchApi("rooms", {
       method: "GET",
     });
   };
