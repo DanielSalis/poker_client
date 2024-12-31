@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, SquareArrowOutUpRight } from "lucide-react";
+import { Frown, MoreHorizontal, SquareArrowOutUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -120,7 +120,7 @@ const Rooms = () => {
   }, []);
 
   const handleJoin = async (data: any) => {
-    await createPlayerApi.fetchApi("players", {
+    const player = await createPlayerApi.fetchApi("players", {
       method: "POST",
       body: {
         username: data.username,
@@ -128,25 +128,32 @@ const Rooms = () => {
       },
     });
 
+    console.log(player)
+
+    debugger
+    if(createPlayerApi.error){
+      alert(createPlayerApi.error)
+      return
+    }
+
     const playerId = createPlayerApi.data?.id;
 
     if (playerId) {
-      joinApi.fetchApi(`games/${data.roomId}/join`, {
+      await joinApi.fetchApi(`rooms/${data.roomId}/join`, {
         method: "POST",
         body: {
           player_id: playerId,
         },
       });
-    }
-
-    if (createRoomApi.data?.id) {
-      router.push(`room/${createRoomApi.data?.id}`);
+      if (!joinApi.error) {
+        router.push(`${data.roomId}`);
+      }
     }
   };
 
   return (
-    <div>
-      {getAllGamesApi.data && (
+    <div className="w-[100%] h-[100%] flex justify-center items-center">
+      {getAllGamesApi.data ?  (
         <Dialog>
           <DataTable columns={columns} data={getAllGamesApi.data} />
           <DialogContent className="w-[360px] min-h-[640px] flex flex-col justify-start">
@@ -157,7 +164,12 @@ const Rooms = () => {
             <JoinRoomForm onSubmit={handleJoin} roomId={clickedId} />
           </DialogContent>
         </Dialog>
-      )}
+      ):
+          <div className="flex items-center">
+            <Frown />
+            <p>Unfortunately no room started</p>
+          </div>
+      }
     </div>
   );
 };
