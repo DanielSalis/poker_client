@@ -47,17 +47,18 @@ const RoomId = () => {
       await getRoomById.fetchApi(`rooms/${id}`, {
         method: "GET"
       })
-      setRoom(getRoomById.data)
     }
-
     fetchRoom()
-  }, [room]);
+  }, []);
+
+  useEffect(()=>{
+    setRoom(getRoomById.data)
+  },[getRoomById.data])
 
    return (
     <div>
       Room {id}
       <p>{room?.players.length}</p>
-      aaa
     </div>
    )
 }

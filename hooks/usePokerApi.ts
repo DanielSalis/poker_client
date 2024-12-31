@@ -18,7 +18,7 @@ interface UseApiResponse<T> {
 export const usePokerApi = <TResponse = unknown>(): UseApiResponse<TResponse> => {
   const [data, setData] = useState<TResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const api = "http://localhost:3000/";
 
   const fetchApi = async <TBody = unknown>(

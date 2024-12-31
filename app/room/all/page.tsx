@@ -13,7 +13,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Frown, MoreHorizontal, SquareArrowOutUpRight } from "lucide-react";
+import {
+  Frown,
+  Loader,
+  MoreHorizontal,
+  SquareArrowOutUpRight,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -120,40 +125,46 @@ const Rooms = () => {
   }, []);
 
   const handleJoin = async (data: any) => {
-    const player = await createPlayerApi.fetchApi("players", {
+    const playerCreated = await fetch("http://localhost:3000/players", {
       method: "POST",
-      body: {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         username: data.username,
         balance: data.balance,
-      },
+      }),
     });
 
-    console.log(player)
+    const player = await playerCreated.json();
 
-    debugger
-    if(createPlayerApi.error){
-      alert(createPlayerApi.error)
-      return
-    }
-
-    const playerId = createPlayerApi.data?.id;
+    const playerId = player.id;
 
     if (playerId) {
-      await joinApi.fetchApi(`rooms/${data.roomId}/join`, {
-        method: "POST",
-        body: {
-          player_id: playerId,
-        },
-      });
-      if (!joinApi.error) {
-        router.push(`${data.roomId}`);
+      debugger;
+      const joinResponse = await fetch(
+        `http://localhost:3000/rooms/${data.roomId}/join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            player_id: playerId,
+          }),
+        }
+      );
+      if (joinResponse.ok) {
+        router.push(`/room/${data.roomId}`);
       }
     }
   };
 
   return (
     <div className="w-[100%] h-[100%] flex justify-center items-center">
-      {getAllGamesApi.data ?  (
+      {getAllGamesApi.loading ? (
+        <Loader />
+      ) : getAllGamesApi.data ? (
         <Dialog>
           <DataTable columns={columns} data={getAllGamesApi.data} />
           <DialogContent className="w-[360px] min-h-[640px] flex flex-col justify-start">
@@ -164,12 +175,12 @@ const Rooms = () => {
             <JoinRoomForm onSubmit={handleJoin} roomId={clickedId} />
           </DialogContent>
         </Dialog>
-      ):
-          <div className="flex items-center">
-            <Frown />
-            <p>Unfortunately no room started</p>
-          </div>
-      }
+      ) : (
+        <div className="flex items-center">
+          <Frown />
+          <p>Unfortunately no room started</p>
+        </div>
+      )}
     </div>
   );
 };
