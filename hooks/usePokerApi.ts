@@ -44,7 +44,7 @@ export const usePokerApi = <TResponse = unknown>(): UseApiResponse<TResponse> =>
       }
 
       const result = (await response.json()) as TResponse;
-      setData(result);
+      await setData(result);
     } catch (err: any) {
       setError(err.message || "error");
     } finally {

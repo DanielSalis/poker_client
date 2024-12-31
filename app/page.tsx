@@ -57,52 +57,78 @@ export default function Home() {
     username: string;
     chips: string;
   }>();
-  const joinApi = usePokerApi<{ message: string }>();
 
   const handleCreateRoomAndPlayer = async (data: FormValues) => {
-    await createRoomApi.fetchApi("rooms", {
+    debugger
+    const roomResponse = await fetch("http://localhost:3000/rooms", {
       method: "POST",
-      body: {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         name: data.roomName,
         max_players: data.maxPlayers,
-      },
+      }),
     });
+    const room = await roomResponse.json()
 
-    await createPlayerApi.fetchApi("players", {
+    const playerResponse = await fetch("http://localhost:3000/players", {
       method: "POST",
-      body: {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         username: data.username,
         balance: data.balance,
+      }),
+    });
+    const player = await playerResponse.json()
+
+    const joinResponse = await fetch(`http://localhost:3000/rooms/${room.id}/join`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        player_id: player.id,
+      }),
     });
 
-    if(createRoomApi.data?.id){
-      router.push(`room/${createRoomApi.data?.id}`)
+    if(joinResponse){
+      router.push(`room/${room.id}`)
     }
   };
 
   const handleJoin = async (data: JoinFormValues) => {
-    await createPlayerApi.fetchApi("players", {
+    const playerCreated = await fetch("http://localhost:3000/players", {
       method: "POST",
-      body: {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         username: data.username,
         balance: data.balance,
-      },
+      }),
     });
 
-    const playerId = createPlayerApi.data?.id;
+    const player = await playerCreated.json()
+
+    const playerId = player.id;
 
     if (playerId) {
-      joinApi.fetchApi(`games/${data.roomId}/join`, {
+      debugger;
+      const joinResponse = await fetch(`http://localhost:3000/rooms/${data.roomId}/join`, {
         method: "POST",
-        body: {
-          player_id: playerId,
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          player_id: playerId,
+        }),
       });
-    }
-
-    if(createRoomApi.data?.id){
-      router.push(`room/${createRoomApi.data?.id}`)
+      if(joinResponse.ok){
+        router.push(`room/${data.roomId}`)
+      }
     }
   };
 

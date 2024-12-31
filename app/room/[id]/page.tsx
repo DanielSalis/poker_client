@@ -1,5 +1,6 @@
 "use client"
 import { usePokerApi } from "@/hooks/usePokerApi";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface IRoom {
@@ -34,30 +35,29 @@ interface IPlayer {
   updated_at: string;
 }
 
-const RoomId = async ({params}: {
-  params: Promise<{id: string}>
-}) => {
+const RoomId = () => {
 
   const getRoomById = usePokerApi<IRoom>();
   const [room, setRoom] = useState<IRoom | null>();
 
-  const roomId = (await params).id
+  const {id} = useParams()
 
   useEffect(()=> {
     async function fetchRoom (){
-      await getRoomById.fetchApi(`rooms/${roomId}`, {
+      await getRoomById.fetchApi(`rooms/${id}`, {
         method: "GET"
       })
       setRoom(getRoomById.data)
     }
 
     fetchRoom()
-  }, []);
+  }, [room]);
 
    return (
     <div>
-      Room {roomId}
+      Room {id}
       <p>{room?.players.length}</p>
+      aaa
     </div>
    )
 }
