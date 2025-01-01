@@ -46,18 +46,6 @@ type JoinFormValues = z.infer<typeof joinFormSchema>;
 export default function Home() {
   const router = useRouter();
 
-  const createRoomApi = usePokerApi<{
-    id: number;
-    name: string;
-    max_players: number;
-    current_players: [];
-  }>();
-  const createPlayerApi = usePokerApi<{
-    id: string;
-    username: string;
-    chips: string;
-  }>();
-
   const handleCreateRoomAndPlayer = async (data: FormValues) => {
     const roomResponse = await fetch("http://localhost:3000/rooms", {
       method: "POST",
