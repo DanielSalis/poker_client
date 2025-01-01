@@ -52,19 +52,6 @@ const Rooms = () => {
 
   const getAllGamesApi = usePokerApi<Game[]>();
 
-  const createRoomApi = usePokerApi<{
-    id: number;
-    name: string;
-    max_players: number;
-    current_players: [];
-  }>();
-  const createPlayerApi = usePokerApi<{
-    id: string;
-    username: string;
-    chips: string;
-  }>();
-  const joinApi = usePokerApi<{ message: string }>();
-
   const columns: ColumnDef<Game>[] = [
     {
       accessorKey: "id",
@@ -73,6 +60,10 @@ const Rooms = () => {
     {
       accessorKey: "status",
       header: "Status",
+    },
+    {
+      accessorKey: "player_count",
+      header: "Players in the room",
     },
     {
       accessorKey: "max_players",
@@ -141,8 +132,8 @@ const Rooms = () => {
     const playerId = player.id;
 
     if (playerId) {
-      debugger;
-      const joinResponse = await fetch(
+      debugger
+      await fetch(
         `http://localhost:3000/rooms/${data.roomId}/join`,
         {
           method: "POST",
@@ -153,10 +144,32 @@ const Rooms = () => {
             player_id: playerId,
           }),
         }
-      );
-      if (joinResponse.ok) {
-        router.push(`/room/${data.roomId}`);
-      }
+      )
+      .then(async (response)=>{
+        debugger
+        if (response.ok) {
+          router.push(`/room/${data.roomId}`);
+        }else {
+          await fetch("http://localhost:3000/players/"+playerId, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            }
+          });
+          const json = await response.json()
+          alert(json?.message)
+        }
+      })
+      .catch(async err=>{
+        debugger
+        await fetch("http://localhost:3000/players/"+playerId, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+        alert(err)
+      });
     }
   };
 
