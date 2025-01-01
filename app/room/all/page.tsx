@@ -132,7 +132,6 @@ const Rooms = () => {
     const playerId = player.id;
 
     if (playerId) {
-      debugger
       await fetch(
         `http://localhost:3000/rooms/${data.roomId}/join`,
         {
@@ -146,7 +145,6 @@ const Rooms = () => {
         }
       )
       .then(async (response)=>{
-        debugger
         if (response.ok) {
           router.push(`/room/${data.roomId}`);
         }else {
@@ -161,7 +159,6 @@ const Rooms = () => {
         }
       })
       .catch(async err=>{
-        debugger
         await fetch("http://localhost:3000/players/"+playerId, {
           method: "DELETE",
           headers: {

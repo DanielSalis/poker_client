@@ -59,7 +59,6 @@ export default function Home() {
   }>();
 
   const handleCreateRoomAndPlayer = async (data: FormValues) => {
-    debugger
     const roomResponse = await fetch("http://localhost:3000/rooms", {
       method: "POST",
       headers: {
@@ -116,7 +115,6 @@ export default function Home() {
     const playerId = player.id;
 
     if (playerId) {
-      debugger;
       const joinResponse = await fetch(`http://localhost:3000/rooms/${data.roomId}/join`, {
         method: "POST",
         headers: {
