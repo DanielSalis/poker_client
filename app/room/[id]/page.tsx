@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { createConsumer } from "@rails/actioncable";
 import "./style.css";
 import { Button } from "@/components/ui/button";
+import backimg from "@/public/cards/back.svg";
+import Image from "next/image";
 
 interface IRoom {
   data: {
@@ -37,8 +39,12 @@ interface IPlayer {
   last_action: string | null;
   created_at: string;
   updated_at: string;
-  username: string
+  username: string;
 }
+
+const getCardSvgPath = (card: string): string => {
+  return `/cards/${card}.svg`;
+};
 
 const RoomId = () => {
   const sessionPlayer = JSON.parse(sessionStorage.getItem("player") as string);
@@ -79,7 +85,7 @@ const RoomId = () => {
         received(data: any) {
           console.log("Received data:", data);
           if (data.action?.name === "join" && data.player_data) {
-              fetchRoom()
+            fetchRoom();
           } else if (data.action?.name === "delete" && data.action.player_id) {
             setRoom((prevRoom) => {
               if (!prevRoom) return null;
@@ -90,6 +96,8 @@ const RoomId = () => {
                 ),
               };
             });
+          } else {
+            fetchRoom();
           }
         },
       }
@@ -122,15 +130,21 @@ const RoomId = () => {
     };
   }, [id, room]);
 
-  const handleGameControl = async (endpoint: string, method: string = "POST") => {
+  const handleGameControl = async (
+    endpoint: string,
+    method: string = "POST"
+  ) => {
     try {
-      const response = await fetch(`http://localhost:3000/rooms/${id}/${endpoint}`, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({player_id: sessionPlayer.id})
-      });
+      const response = await fetch(
+        `http://localhost:3000/rooms/${id}/${endpoint}`,
+        {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ player_id: sessionPlayer.id }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to call ${endpoint}: ${response.statusText}`);
@@ -142,19 +156,27 @@ const RoomId = () => {
     }
   };
 
-  const handleGameAction = async (endpoint: string, method: string = "POST", action_type: string, amount: number) => {
+  const handleGameAction = async (
+    endpoint: string,
+    method: string = "POST",
+    action_type: string,
+    amount: number
+  ) => {
     try {
-      const response = await fetch(`http://localhost:3000/rooms/${id}/${endpoint}`, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          player_id: sessionPlayer.id,
-          action_type,
-          amount
-        })
-      });
+      const response = await fetch(
+        `http://localhost:3000/rooms/${id}/${endpoint}`,
+        {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            player_id: sessionPlayer.id,
+            action_type,
+            amount,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to call ${endpoint}: ${response.statusText}`);
@@ -175,7 +197,10 @@ const RoomId = () => {
             Start
           </Button>
         )}
-        <Button variant="destructive" onClick={() => handleGameControl("leave")}>
+        <Button
+          variant="destructive"
+          onClick={() => handleGameControl("leave")}
+        >
           Leave
         </Button>
       </div>
@@ -184,24 +209,56 @@ const RoomId = () => {
           {room && room.data.comunity_cards.length > 0 ? (
             <>
               {room?.data.comunity_cards.map((card, index) => (
-                <span key={index} className="card">
-                  {card}
-                </span>
+                <Image
+                  key={index + card}
+                  src={getCardSvgPath(card)}
+                  alt={`Card image ${card}`}
+                  width={60}
+                  height={80}
+                />
               ))}
             </>
           ) : (
-            <span>Waiting for game to start</span>
+            Array.from({ length: 5 }).map((_, index) => (
+              <Image
+                key={index}
+                src={getCardSvgPath("back")}
+                alt={`Card back ${index + 1}`}
+                width={60}
+                height={80}
+              />
+            ))
           )}
         </div>
 
         {room?.players.map((player, index) => (
           <div key={player.id} className={`player player-${index + 1}`}>
-            <span>
-              {player.username}
-            </span>
-            <span>
-            Chips: {player.chips}
-            </span>
+            <div className="flex justify-center items-center mt-[-40px]">
+              {player.hand &&
+                player.hand.map((card, index) => {
+                  if (player.player_id === sessionPlayer.id) {
+                    return (
+                      <Image
+                        key={player.id + index + card}
+                        src={getCardSvgPath(card)}
+                        alt={`playerCard image ${card}`}
+                        width={40}
+                        height={60}
+                      />
+                    );
+                  } else {
+                    return <Image
+                      key={player.id + index + card}
+                      src={getCardSvgPath("back")}
+                      alt={`playerCard image ${card}`}
+                      width={40}
+                      height={60}
+                    />;
+                  }
+                })}
+            </div>
+            <span>{player.username}</span>
+            <span>Chips: {player.chips}</span>
           </div>
         ))}
       </div>

@@ -14,7 +14,7 @@
   grid-template-rows: 1fr 2fr 1fr;
   gap: 10px;
   position: relative;
-  width: 60%;
+  width: 900px;
   height: 600px;
   margin-top: 20px;
 }
