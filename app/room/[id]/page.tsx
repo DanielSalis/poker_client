@@ -190,8 +190,8 @@ const RoomId = () => {
 
   return (
     <div className="flex flex-col items-center w-[100%] h-[100%] p-8">
-      <h1>Room {id}</h1>
-      <div className="flex justify-center space-x-4 mb-4">
+      <h1>Room {id} - Phase: {room?.data.phase}</h1>
+      <div className="flex justify-center space-x-4 mb-4 mt-4">
         {room?.data.status === "waiting" && (
           <Button variant="default" onClick={() => handleGameControl("start")}>
             Start
@@ -202,6 +202,13 @@ const RoomId = () => {
           onClick={() => handleGameControl("leave")}
         >
           Leave
+        </Button>
+        <Button
+          variant="default"
+          className=" bg-amber-400"
+          onClick={() => handleGameControl("next-phase", "POST")}
+        >
+          next-phase(experimental)
         </Button>
       </div>
       <div className="table">
@@ -263,7 +270,7 @@ const RoomId = () => {
         ))}
       </div>
 
-      <div className="flex justify-center space-x-4 mt-auto">
+      <div className="flex justify-center space-x-4 mt-auto w-[100%] ">
         <Button
           variant="default"
           onClick={() => handleGameAction("action", "POST", "check", 0)}
