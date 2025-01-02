@@ -41,6 +41,7 @@ interface IPlayer {
 }
 
 const RoomId = () => {
+  const sessionPlayer = JSON.parse(sessionStorage.getItem("player") as string);
   const getRoomById = usePokerApi<IRoom>();
   const [room, setRoom] = useState<IRoom | null>(null);
 
@@ -64,8 +65,6 @@ const RoomId = () => {
   }, [getRoomById.data]);
 
   useEffect(() => {
-    const player = JSON.parse(sessionStorage.getItem("player") as string);
-
     const consumer = createConsumer("ws://localhost:3000/cable");
 
     const subscription = consumer.subscriptions.create(
@@ -104,15 +103,14 @@ const RoomId = () => {
 
   useEffect(() => {
     const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
-      const player = JSON.parse(sessionStorage.getItem("player") as string);
-      if (player) {
+      if (sessionPlayer) {
         await fetch(`http://localhost:3000/rooms/${id}/leave`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            player_id: player.id,
+            player_id: sessionPlayer.id,
           }),
         });
       }
@@ -124,15 +122,38 @@ const RoomId = () => {
     };
   }, [id, room]);
 
-  const handleAction = async (endpoint: string, method: string = "POST") => {
-    const player = JSON.parse(sessionStorage.getItem("player") as string);
+  const handleGameControl = async (endpoint: string, method: string = "POST") => {
     try {
       const response = await fetch(`http://localhost:3000/rooms/${id}/${endpoint}`, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({player_id: player.id})
+        body: JSON.stringify({player_id: sessionPlayer.id})
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to call ${endpoint}: ${response.statusText}`);
+      }
+
+      console.log(`Success: ${endpoint}`);
+    } catch (error) {
+      console.error(`Error: ${error}`);
+    }
+  };
+
+  const handleGameAction = async (endpoint: string, method: string = "POST", action_type: string, amount: number) => {
+    try {
+      const response = await fetch(`http://localhost:3000/rooms/${id}/${endpoint}`, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          player_id: sessionPlayer.id,
+          action_type,
+          amount
+        })
       });
 
       if (!response.ok) {
@@ -150,11 +171,11 @@ const RoomId = () => {
       <h1>Room {id}</h1>
       <div className="flex justify-center space-x-4 mb-4">
         {room?.data.status === "waiting" && (
-          <Button variant="default" onClick={() => handleAction("start")}>
+          <Button variant="default" onClick={() => handleGameControl("start")}>
             Start
           </Button>
         )}
-        <Button variant="destructive" onClick={() => handleAction("leave")}>
+        <Button variant="destructive" onClick={() => handleGameControl("leave")}>
           Leave
         </Button>
       </div>
@@ -188,19 +209,19 @@ const RoomId = () => {
       <div className="flex justify-center space-x-4 mt-auto">
         <Button
           variant="default"
-          onClick={() => handleAction("action", "POST")}
+          onClick={() => handleGameAction("action", "POST", "check", 0)}
         >
           Check
         </Button>
         <Button
           variant="default"
-          onClick={() => handleAction("action", "POST")}
+          onClick={() => handleGameAction("action", "POST", "raise", 100)}
         >
-          Raise
+          Raise (100)
         </Button>
         <Button
           variant="secondary"
-          onClick={() => handleAction("action", "POST")}
+          onClick={() => handleGameAction("action", "POST", "fold", 0)}
         >
           Fold
         </Button>
