@@ -15,7 +15,7 @@
   gap: 10px;
   position: relative;
   width: 60%;
-  height: 400px;
+  height: 600px;
   margin-top: 20px;
 }
 
@@ -27,6 +27,7 @@
   height: 100%;
   background: #333333;
   color: white;
+  border-radius: 40%;
 }
 
 .card {
@@ -39,6 +40,7 @@
 
 .player {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: #f4f4f4;
@@ -46,8 +48,8 @@
   padding: 15px;
   font-size: 14px;
   font-weight: bold;
-  width: 80px;
-  height: 80px;
+  width: 140px;
+  height: 100px;
   margin: auto;
 }
 
