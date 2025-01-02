@@ -146,6 +146,7 @@ const Rooms = () => {
       )
       .then(async (response)=>{
         if (response.ok) {
+          sessionStorage.setItem("player", JSON.stringify(player));
           router.push(`/room/${data.roomId}`);
         }else {
           await fetch("http://localhost:3000/players/"+playerId, {

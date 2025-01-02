@@ -1,15 +1,6 @@
 "use client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import background from "./background.png";
-import { funAnimalName } from "fun-animal-names";
-import { v4 as uuidv4 } from "uuid";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { TabsContent } from "@radix-ui/react-tabs";
 import {
   Card,
@@ -23,7 +14,7 @@ import React from "react";
 import DialogLayout from "@/components/dialog/dialog-layout";
 import CreateRoomForm from "@/components/form/create-room-form";
 import JoinRoomForm from "@/components/form/join-room-form";
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const formSchema = z.object({
@@ -56,7 +47,7 @@ export default function Home() {
         max_players: data.maxPlayers,
       }),
     });
-    const room = await roomResponse.json()
+    const room = await roomResponse.json();
 
     const playerResponse = await fetch("http://localhost:3000/players", {
       method: "POST",
@@ -68,20 +59,24 @@ export default function Home() {
         balance: data.balance,
       }),
     });
-    const player = await playerResponse.json()
+    const player = await playerResponse.json();
 
-    const joinResponse = await fetch(`http://localhost:3000/rooms/${room.id}/join`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        player_id: player.id,
-      }),
-    });
+    const joinResponse = await fetch(
+      `http://localhost:3000/rooms/${room.id}/join`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          player_id: player.id,
+        }),
+      }
+    );
 
-    if(joinResponse){
-      router.push(`room/${room.id}`)
+    if (joinResponse.ok) {
+      sessionStorage.setItem("player", JSON.stringify(player));
+      router.push(`room/${room.id}`);
     }
   };
 
@@ -97,22 +92,26 @@ export default function Home() {
       }),
     });
 
-    const player = await playerCreated.json()
+    const player = await playerCreated.json();
 
     const playerId = player.id;
 
     if (playerId) {
-      const joinResponse = await fetch(`http://localhost:3000/rooms/${data.roomId}/join`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          player_id: playerId,
-        }),
-      });
-      if(joinResponse.ok){
-        router.push(`room/${data.roomId}`)
+      const joinResponse = await fetch(
+        `http://localhost:3000/rooms/${data.roomId}/join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            player_id: playerId,
+          }),
+        }
+      );
+      if (joinResponse.ok) {
+        sessionStorage.setItem("player", JSON.stringify(player));
+        router.push(`room/${data.roomId}`);
       }
     }
   };
@@ -158,7 +157,9 @@ export default function Home() {
               <CardContent>
                 <JoinRoomForm onSubmit={handleJoin} />
                 <div className="w-[100%] flex justify-center items-center mt-4">
-                  <Link href="/room/all" className=" underline text-sky-600">check the ongoing games!</Link>
+                  <Link href="/room/all" className=" underline text-sky-600">
+                    check the ongoing games!
+                  </Link>
                 </div>
               </CardContent>
             </Card>

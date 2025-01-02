@@ -43,12 +43,13 @@ const RoomId = () => {
 
   const { id } = useParams();
 
+  async function fetchRoom() {
+    await getRoomById.fetchApi(`rooms/${id}`, {
+      method: "GET",
+    });
+  }
+
   useEffect(() => {
-    async function fetchRoom() {
-      await getRoomById.fetchApi(`rooms/${id}`, {
-        method: "GET",
-      });
-    }
     fetchRoom();
   }, [id]);
 
@@ -59,7 +60,8 @@ const RoomId = () => {
   }, [getRoomById.data]);
 
   useEffect(() => {
-    // Set up ActionCable consumer
+    const player = JSON.parse(sessionStorage.getItem("player") as string);
+
     const consumer = createConsumer("ws://localhost:3000/cable");
 
     const subscription = consumer.subscriptions.create(
@@ -73,13 +75,22 @@ const RoomId = () => {
         },
         received(data: any) {
           console.log("Received data:", data);
-          debugger
-          if (data.action?.player_id) {
+          if (data.action?.name === "join" && data.player_data) {
             setRoom((prevRoom) => {
               if (!prevRoom) return null;
               return {
                 ...prevRoom,
-                players: [...prevRoom.players, data.action],
+                players: [...prevRoom.players, data.player_data],
+              };
+            });
+          } else if (data.action?.name === "delete" && data.action.player_id) {
+            setRoom((prevRoom) => {
+              if (!prevRoom) return null;
+              return {
+                ...prevRoom,
+                players: prevRoom.players.filter(
+                  (player) => player.player_id !== data.action.player_id
+                ),
               };
             });
           }
@@ -87,10 +98,31 @@ const RoomId = () => {
       }
     );
 
-    // Cleanup on unmount
     return () => {
       subscription.unsubscribe();
       console.log("Unsubscribed from GameChannel");
+    };
+  }, [id, room]);
+
+  useEffect(() => {
+    const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
+      const player = JSON.parse(sessionStorage.getItem("player") as string);
+      if (player) {
+        await fetch(`http://localhost:3000/rooms/${id}/leave`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            player_id: player.id,
+          }),
+        });
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [id]);
 
@@ -101,7 +133,7 @@ const RoomId = () => {
       <ul>
         {room?.players.map((player) => (
           <li key={player.id}>
-            {player?.player_id || player?.id} - Chips: {player.chips}
+            {player?.player_id || player?.id} - Chips: {player?.chips}
           </li>
         ))}
       </ul>
