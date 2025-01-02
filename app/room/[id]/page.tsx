@@ -4,6 +4,7 @@ import { usePokerApi } from "@/hooks/usePokerApi";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createConsumer } from "@rails/actioncable";
+import "./style.css";
 
 interface IRoom {
   data: {
@@ -57,6 +58,7 @@ const RoomId = () => {
     if (getRoomById.data) {
       setRoom(getRoomById.data);
     }
+    console.log(getRoomById.data);
   }, [getRoomById.data]);
 
   useEffect(() => {
@@ -127,16 +129,31 @@ const RoomId = () => {
   }, [id]);
 
   return (
-    <div>
-      Room {id}
-      <p>Players: {room?.players.length}</p>
-      <ul>
-        {room?.players.map((player) => (
-          <li key={player.id}>
-            {player?.player_id || player?.id} - Chips: {player?.chips}
-          </li>
+    <div className="room-container">
+      <h1>Room {id}</h1>
+      <div className="table">
+        <div className="community-cards">
+          {room && room.data.comunity_cards.length > 0 ? (
+            <>
+              {room?.data.comunity_cards.map((card, index) => (
+                <span key={index} className="card">
+                  {card}
+                </span>
+              ))}
+            </>
+          ) : (
+            <span>Waiting for game to start</span>
+          )}
+        </div>
+
+        {room?.players.map((player, index) => (
+          <div key={player.id} className={`player player-${index + 1}`}>
+            <span>
+              {index + 1} - Chips: {player.chips}
+            </span>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
