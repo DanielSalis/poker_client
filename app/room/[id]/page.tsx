@@ -2,12 +2,20 @@
 
 import { usePokerApi } from "@/hooks/usePokerApi";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createConsumer } from "@rails/actioncable";
 import "./style.css";
 import { Button } from "@/components/ui/button";
 import backimg from "@/public/cards/back.svg";
 import Image from "next/image";
+import avatar from "animal-avatar-generator";
+import {
+  CircleDollarSign,
+  DollarSign,
+  Wallet,
+  WalletMinimal,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface IRoom {
   data: {
@@ -50,6 +58,8 @@ const RoomId = () => {
   const sessionPlayer = JSON.parse(sessionStorage.getItem("player") as string);
   const getRoomById = usePokerApi<IRoom>();
   const [room, setRoom] = useState<IRoom | null>(null);
+  const avatarRef = useRef<HTMLDivElement | null>(null);
+  const [playerTurn, setPlayerTurn] = useState<IPlayer | null>();
 
   const { id } = useParams();
 
@@ -58,6 +68,16 @@ const RoomId = () => {
       method: "GET",
     });
   }
+
+  const generateAvatar = (seed: string) => {
+    const svg = avatar(seed, { size: 65 });
+    return (
+      <div
+        className="z-10 ml-[-35px]"
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    );
+  };
 
   useEffect(() => {
     fetchRoom();
@@ -69,6 +89,17 @@ const RoomId = () => {
     }
     console.log(getRoomById.data);
   }, [getRoomById.data]);
+
+  useEffect(() => {
+    if (room?.players) {
+      const result = room.players.find((player) => player.last_action == null);
+      if(result === undefined || result === null){
+         handleGameControl("next-phase", "POST")
+         return
+      }
+      setPlayerTurn(result === undefined ? null : result);
+    }
+  }, [room]);
 
   useEffect(() => {
     const consumer = createConsumer("ws://localhost:3000/cable");
@@ -96,7 +127,11 @@ const RoomId = () => {
                 ),
               };
             });
-          } else {
+          } else if (data.action?.name === "action" && data.action.player_id){
+            console.log("action");
+
+          }
+           else {
             fetchRoom();
           }
         },
@@ -190,10 +225,15 @@ const RoomId = () => {
 
   return (
     <div className="flex flex-col items-center w-[100%] h-[100%] p-8">
-      <h1>Room {id} - Phase: {room?.data.phase}</h1>
+      <h1>
+        Room {id} - Next Phase: {room?.data.phase}
+      </h1>
       <div className="flex justify-center space-x-4 mb-4 mt-4">
         {room?.data.status === "waiting" && (
-          <Button variant="default" onClick={() => handleGameControl("start")}>
+          <Button variant="default" onClick={async () => {
+            await handleGameControl("start")
+            await handleGameControl("next-phase", "POST")
+          }}>
             Start
           </Button>
         )}
@@ -239,8 +279,8 @@ const RoomId = () => {
         </div>
 
         {room?.players.map((player, index) => (
-          <div key={player.id} className={`player player-${index + 1}`}>
-            <div className="flex justify-center items-center mt-[-40px]">
+          <div key={player.player_id} className={`player player-${index + 1}`}>
+            <div className="flex justify-center items-center">
               {player.hand &&
                 player.hand.map((card, index) => {
                   if (player.player_id === sessionPlayer.id) {
@@ -254,42 +294,61 @@ const RoomId = () => {
                       />
                     );
                   } else {
-                    return <Image
-                      key={player.id + index + card}
-                      src={getCardSvgPath("back")}
-                      alt={`playerCard image ${card}`}
-                      width={40}
-                      height={60}
-                    />;
+                    return (
+                      <Image
+                        key={player.id + index + card}
+                        src={getCardSvgPath("back")}
+                        alt={`playerCard image ${card}`}
+                        width={40}
+                        height={60}
+                      />
+                    );
                   }
                 })}
             </div>
-            <span>{player.username}</span>
-            <span>Chips: {player.chips}</span>
+            <div className="flex justify-center items-center mt-[-25px]">
+              {generateAvatar(player.username)}
+              <div className="flex flex-col justify-center items-start bg-stone-200 pl-4 pr-1 ml-[-12px] z-0 rounded-md min-w-20">
+                <span>{player.username}</span>
+                <span className="flex justify-center items-center">
+                  <DollarSign size={12} /> {player.chips}
+                </span>
+              </div>
+            </div>
+            {playerTurn && playerTurn.player_id === player.player_id && (
+              <Badge className=" bg-red-400 mt-[-12px]">playing</Badge>
+            )}
+            {playerTurn && playerTurn.player_id !== player.player_id && player.last_action &&
+              (
+                <Badge className=" bg-green-300 mt-[-12px]">{player.last_action}</Badge>
+              )
+            }
           </div>
         ))}
       </div>
 
-      <div className="flex justify-center space-x-4 mt-auto w-[100%] ">
-        <Button
-          variant="default"
-          onClick={() => handleGameAction("action", "POST", "check", 0)}
-        >
-          Check
-        </Button>
-        <Button
-          variant="default"
-          onClick={() => handleGameAction("action", "POST", "raise", 100)}
-        >
-          Raise (100)
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => handleGameAction("action", "POST", "fold", 0)}
-        >
-          Fold
-        </Button>
-      </div>
+      {room?.data.status !== "waiting" && sessionPlayer.id === playerTurn?.player_id && (
+        <div className="flex justify-center space-x-4 mt-auto w-[100%] ">
+          <Button
+            variant="default"
+            onClick={() => handleGameAction("action", "POST", "check", 0)}
+          >
+            Check
+          </Button>
+          <Button
+            variant="default"
+            onClick={() => handleGameAction("action", "POST", "raise", 100)}
+          >
+            Raise (100)
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => handleGameAction("action", "POST", "fold", 0)}
+          >
+            Fold
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

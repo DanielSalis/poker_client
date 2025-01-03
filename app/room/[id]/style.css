@@ -14,7 +14,7 @@
   grid-template-rows: 1fr 2fr 1fr;
   gap: 10px;
   position: relative;
-  width: 900px;
+  width: 1000px;
   height: 600px;
   margin-top: 20px;
 }
@@ -27,7 +27,7 @@
   height: 100%;
   background: #333333;
   color: white;
-  border-radius: 40%;
+  border-radius: 4%;
 }
 
 .card {
@@ -43,12 +43,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f4f4f4;
-  border-radius: 50%;
   padding: 15px;
   font-size: 14px;
   font-weight: bold;
-  width: 140px;
+  width: 180px;
   height: 100px;
   margin: auto;
 }
